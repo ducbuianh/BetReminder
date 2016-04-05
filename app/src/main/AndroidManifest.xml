@@ -21,7 +21,14 @@
         </activity>
         <service
             android:name=".GetBetTimeService"
-            android:exported="false"/>
+            android:exported="false">
+        </service>
+        <receiver android:name="BroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED">
+                </action>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
