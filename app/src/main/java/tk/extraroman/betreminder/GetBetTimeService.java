@@ -7,29 +7,26 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
+import android.widget.Toast;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 
-/**
- * Created by ducba on 2016/04/04.
- */
 public class GetBetTimeService extends IntentService {
     //private String time;
+    private static final int TIME_THRESHOLD = 15;
+    private static final String TIME_UNIT = "hour";
+    private static final String PARSE_URL = "https://csgolounge.com/";
+    private static final int PARSE_TIMEOUT = 30*1000;
     public static final int NOTIFICATION_ID = 1;
     private NotificationManager mNotificationManager;
-    NotificationCompat.Builder builder;
 
-
-    public GetBetTimeService(String name) {
-        super("tk.extraroman.GetBetTimeService");
+    public GetBetTimeService() {
+        super("GetBetTimeService");
     }
 
     @Override
@@ -40,14 +37,14 @@ public class GetBetTimeService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent workIntent) {
-        String dataString = workIntent.getDataString();
-
         try {
-            Document doc = Jsoup.connect(dataString).timeout(30000).get();
+            Document doc = Jsoup.connect(PARSE_URL).timeout(PARSE_TIMEOUT).get();
             Element bets = doc.getElementById("bets");
             Element timeElem = bets.child(0).child(0).child(0);
-            //this.time = timeElem.text();
-            sendNotification(timeElem.text());
+            if (isTimeToBet(timeElem.text())) {
+                Toast.makeText(getApplicationContext(), "Notify", Toast.LENGTH_SHORT).show();
+                sendNotification("Bet now u lazy ass !!!");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -55,7 +52,7 @@ public class GetBetTimeService extends IntentService {
 
     private void sendNotification(String msg)
     {
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,new Intent(this, MainActivity.class), 0);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_stat_logo)
@@ -70,5 +67,11 @@ public class GetBetTimeService extends IntentService {
         mBuilder.setLights(Color.RED, 3000, 3000);
 
         mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+    }
+
+    private boolean isTimeToBet(String time) {
+        String[] timeElem = time.split(" ");
+        System.out.println("asdfasdfasd: " + timeElem[0] + " " + timeElem[1]);
+        return (Integer.parseInt(timeElem[0]) <= TIME_THRESHOLD && TIME_UNIT.equals(timeElem[1].substring(0, 4)));
     }
 }

@@ -19,15 +19,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service
-            android:name=".GetBetTimeService"
-            android:exported="false">
+        <service android:name=".GetBetTimeService">
         </service>
-        <receiver android:name="BroadcastReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED">
-                </action>
-            </intent-filter>
+        <receiver
+            android:name="BroadcastReceiver"
+            android:process=":remote">
         </receiver>
     </application>
 

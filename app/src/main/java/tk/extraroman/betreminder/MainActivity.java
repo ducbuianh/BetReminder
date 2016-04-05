@@ -1,5 +1,7 @@
 package tk.extraroman.betreminder;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -29,18 +31,36 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-       FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+//       FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+//        fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+//            }
+//        });
 
-        Intent mServiceIntent = new Intent(this, GetBetTimeService.class);
-        mServiceIntent.setData(Uri.parse("https://csgolounge.com/"));
-        this.startService(mServiceIntent);
+//        Intent mServiceIntent = new Intent(this, GetBetTimeService.class);
+//        mServiceIntent.setData(Uri.parse("https://csgolounge.com/"));
+//        this.startService(mServiceIntent);
+
+        try {
+            AlarmManager alarms = (AlarmManager) this
+                    .getSystemService(getApplicationContext().ALARM_SERVICE);
+
+            Intent intent = new Intent(getApplicationContext(), BroadcastReceiver.class);
+            intent.putExtra(BroadcastReceiver.ACTION_ALARM, BroadcastReceiver.ACTION_ALARM);
+
+            final PendingIntent pIntent = PendingIntent.getBroadcast(this,
+                    1234567, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            alarms.setRepeating(AlarmManager.RTC_WAKEUP,
+                    System.currentTimeMillis(), 30*1000, pIntent);
+
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
 //        try {
 //            new GetBetTimeTask(this).execute("https://csgolounge.com/");
