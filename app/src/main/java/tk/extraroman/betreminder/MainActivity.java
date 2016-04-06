@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        Spinner threholdValueSpinner = (Spinner) findViewById(R.id.threshold_value_spinner);
+        final Spinner threholdValueSpinner = (Spinner) findViewById(R.id.threshold_value_spinner);
         ArrayAdapter<CharSequence> thresholdValueAdapter = ArrayAdapter.createFromResource(this,
                 R.array.bet_threshold_minute_value_array, android.R.layout.simple_spinner_item);
         thresholdValueAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Spinner threholdUnitSpinner = (Spinner) findViewById(R.id.threshold_unit_spinner);
+        final Spinner threholdUnitSpinner = (Spinner) findViewById(R.id.threshold_unit_spinner);
         ArrayAdapter<CharSequence> thresholdUnitAdapter = ArrayAdapter.createFromResource(this,
                 R.array.bet_threshold_unit_array, android.R.layout.simple_spinner_item);
         thresholdUnitAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -50,6 +50,17 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 PreferenceUtil.savePreference(getApplicationContext(), Constants.THRESHOLD_UNIT_KEY, parent.getSelectedItem().toString());
+
+                int valueArrayId = 0;
+                if (parent.getSelectedItem().toString().charAt(0) == 'h') {
+                    valueArrayId = R.array.bet_threshold_hour_value_array;
+                } else {
+                    valueArrayId = R.array.bet_threshold_minute_value_array;
+                }
+                ArrayAdapter<CharSequence> thresholdValueAdapter = ArrayAdapter.createFromResource(getApplicationContext(),
+                        valueArrayId, android.R.layout.simple_spinner_item);
+                thresholdValueAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                threholdValueSpinner.setAdapter(thresholdValueAdapter);
             }
 
             @Override
@@ -58,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Spinner checkIntervalSpinner = (Spinner) findViewById(R.id.bet_check_interval_spinner);
+        final Spinner checkIntervalSpinner = (Spinner) findViewById(R.id.bet_check_interval_spinner);
         ArrayAdapter<CharSequence> checkIntervalAdapter = ArrayAdapter.createFromResource(this,
                 R.array.bet_check_interval_array, android.R.layout.simple_spinner_item);
         checkIntervalAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -112,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
                     PendingIntent pIntent = PendingIntent.getBroadcast(getApplicationContext(),
                             1234567, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-                    int interval = Integer.parseInt(PreferenceUtil.getPreference(getApplicationContext(), Constants.CHECK_INTERVAL_KEY));
+                    int interval = Integer.parseInt(PreferenceUtil.getPreference(getApplicationContext(), Constants.CHECK_INTERVAL_KEY).split(" ")[0]);
                     alarms.setRepeating(AlarmManager.RTC_WAKEUP,
                             System.currentTimeMillis(), interval*60*1000, pIntent);
 
