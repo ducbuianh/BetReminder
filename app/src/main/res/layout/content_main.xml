@@ -15,7 +15,68 @@
 
     <TextView
         android:id="@+id/abc"
-        android:text="Hello World!"
+        android:text="Set notify threshold:"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/threshold_value_spinner"
+        android:layout_below="@+id/abc"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignRight="@+id/abc"
+        android:layout_alignEnd="@+id/abc" />
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/threshold_unit_spinner"
+        android:layout_below="@+id/abc"
+        android:layout_toRightOf="@+id/abc"
+        android:layout_toEndOf="@+id/abc" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Checking every:"
+        android:id="@+id/textView"
+        android:layout_below="@+id/threshold_value_spinner"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="19dp" />
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/bet_check_interval_spinner"
+        android:layout_below="@+id/textView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_toLeftOf="@+id/threshold_unit_spinner"
+        android:layout_toStartOf="@+id/threshold_unit_spinner" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start"
+        android:id="@+id/buttonStart"
+        android:layout_marginTop="23dp"
+        android:layout_below="@+id/bet_check_interval_spinner"
+        android:layout_toLeftOf="@+id/threshold_unit_spinner"
+        android:layout_toStartOf="@+id/threshold_unit_spinner" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Stop"
+        android:id="@+id/buttonStop"
+        android:layout_alignTop="@+id/buttonStart"
+        android:layout_alignRight="@+id/threshold_unit_spinner"
+        android:layout_alignEnd="@+id/threshold_unit_spinner"
+        android:layout_marginRight="47dp"
+        android:layout_marginEnd="47dp" />
+
+
 </RelativeLayout>

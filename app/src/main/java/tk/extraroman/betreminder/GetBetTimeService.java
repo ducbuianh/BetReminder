@@ -18,9 +18,6 @@ import java.io.IOException;
 
 public class GetBetTimeService extends IntentService {
     //private String time;
-    private static final int TIME_THRESHOLD = 15;
-    private static final String TIME_UNIT = "hour";
-    private static final String PARSE_URL = "https://csgolounge.com/";
     private static final int PARSE_TIMEOUT = 30*1000;
     public static final int NOTIFICATION_ID = 1;
     private NotificationManager mNotificationManager;
@@ -38,7 +35,7 @@ public class GetBetTimeService extends IntentService {
     @Override
     protected void onHandleIntent(Intent workIntent) {
         try {
-            Document doc = Jsoup.connect(PARSE_URL).timeout(PARSE_TIMEOUT).get();
+            Document doc = Jsoup.connect(Constants.PARSE_URL).timeout(PARSE_TIMEOUT).get();
             Element bets = doc.getElementById("bets");
             Element timeElem = bets.child(0).child(0).child(0);
             if (isTimeToBet(timeElem.text())) {
@@ -71,7 +68,9 @@ public class GetBetTimeService extends IntentService {
 
     private boolean isTimeToBet(String time) {
         String[] timeElem = time.split(" ");
-        System.out.println("asdfasdfasd: " + timeElem[0] + " " + timeElem[1]);
-        return (Integer.parseInt(timeElem[0]) <= TIME_THRESHOLD && TIME_UNIT.equals(timeElem[1].substring(0, 4)));
+        System.out.println("asdfasdfasd: " + timeElem[0] + " " + timeElem[1].charAt(0));
+        int thresholdValue = Integer.parseInt(PreferenceUtil.getPreference(getApplicationContext(), Constants.THRESHOLD_VALUE_KEY));
+        char thresholdUnit = PreferenceUtil.getPreference(getApplicationContext(), Constants.THRESHOLD_UNIT_KEY).charAt(0);
+        return (Integer.parseInt(timeElem[0]) <= thresholdValue && thresholdUnit == timeElem[1].charAt(0));
     }
 }

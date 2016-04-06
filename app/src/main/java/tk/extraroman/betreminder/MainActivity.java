@@ -3,27 +3,18 @@ package tk.extraroman.betreminder;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.Spinner;
 
 public class MainActivity extends AppCompatActivity {
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,43 +22,109 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-//       FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
+        Spinner threholdValueSpinner = (Spinner) findViewById(R.id.threshold_value_spinner);
+        ArrayAdapter<CharSequence> thresholdValueAdapter = ArrayAdapter.createFromResource(this,
+                R.array.bet_threshold_minute_value_array, android.R.layout.simple_spinner_item);
+        thresholdValueAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        threholdValueSpinner.setAdapter(thresholdValueAdapter);
 
-//        Intent mServiceIntent = new Intent(this, GetBetTimeService.class);
-//        mServiceIntent.setData(Uri.parse("https://csgolounge.com/"));
-//        this.startService(mServiceIntent);
+        threholdValueSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                PreferenceUtil.savePreference(getApplicationContext(), Constants.THRESHOLD_VALUE_KEY, parent.getSelectedItem().toString());
+            }
 
-        try {
-            AlarmManager alarms = (AlarmManager) this
-                    .getSystemService(getApplicationContext().ALARM_SERVICE);
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
 
-            Intent intent = new Intent(getApplicationContext(), BroadcastReceiver.class);
-            intent.putExtra(BroadcastReceiver.ACTION_ALARM, BroadcastReceiver.ACTION_ALARM);
+            }
+        });
 
-            final PendingIntent pIntent = PendingIntent.getBroadcast(this,
-                    1234567, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Spinner threholdUnitSpinner = (Spinner) findViewById(R.id.threshold_unit_spinner);
+        ArrayAdapter<CharSequence> thresholdUnitAdapter = ArrayAdapter.createFromResource(this,
+                R.array.bet_threshold_unit_array, android.R.layout.simple_spinner_item);
+        thresholdUnitAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        threholdUnitSpinner.setAdapter(thresholdUnitAdapter);
 
-            alarms.setRepeating(AlarmManager.RTC_WAKEUP,
-                    System.currentTimeMillis(), 30*1000, pIntent);
+        threholdUnitSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                PreferenceUtil.savePreference(getApplicationContext(), Constants.THRESHOLD_UNIT_KEY, parent.getSelectedItem().toString());
+            }
 
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
 
-//        try {
-//            new GetBetTimeTask(this).execute("https://csgolounge.com/");
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+            }
+        });
 
+        Spinner checkIntervalSpinner = (Spinner) findViewById(R.id.bet_check_interval_spinner);
+        ArrayAdapter<CharSequence> checkIntervalAdapter = ArrayAdapter.createFromResource(this,
+                R.array.bet_check_interval_array, android.R.layout.simple_spinner_item);
+        checkIntervalAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        checkIntervalSpinner.setAdapter(checkIntervalAdapter);
+
+        checkIntervalSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                PreferenceUtil.savePreference(getApplicationContext(), Constants.CHECK_INTERVAL_KEY, parent.getSelectedItem().toString());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        final Button btnStop = (Button) findViewById(R.id.buttonStop);
+        btnStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    AlarmManager alarms = (AlarmManager) getApplicationContext().getSystemService(getApplicationContext().ALARM_SERVICE);
+                    Intent intent = new Intent(getApplicationContext(), BroadcastReceiver.class);
+                    PendingIntent pIntent = PendingIntent.getBroadcast(getApplicationContext(),
+                            1234567, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                    alarms.cancel(pIntent);
+
+                    Button btnStart = (Button) findViewById(R.id.buttonStart);
+                    btnStart.setEnabled(true);
+                    v.setEnabled(false);
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
+        btnStop.setEnabled(false);
+
+        final Button btnStart = (Button) findViewById(R.id.buttonStart);
+        btnStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    AlarmManager alarms = (AlarmManager) getApplicationContext().getSystemService(getApplicationContext().ALARM_SERVICE);
+
+                    Intent intent = new Intent(getApplicationContext(), BroadcastReceiver.class);
+                    intent.putExtra(BroadcastReceiver.ACTION_ALARM, BroadcastReceiver.ACTION_ALARM);
+
+                    PendingIntent pIntent = PendingIntent.getBroadcast(getApplicationContext(),
+                            1234567, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                    int interval = Integer.parseInt(PreferenceUtil.getPreference(getApplicationContext(), Constants.CHECK_INTERVAL_KEY));
+                    alarms.setRepeating(AlarmManager.RTC_WAKEUP,
+                            System.currentTimeMillis(), interval*60*1000, pIntent);
+
+                    Button btnStop = (Button) findViewById(R.id.buttonStop);
+                    btnStop.setEnabled(true);
+                    v.setEnabled(false);
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
@@ -85,8 +142,8 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        if (id == R.id.action_exit) {
+            this.finishAffinity();
         }
 
         return super.onOptionsItemSelected(item);
