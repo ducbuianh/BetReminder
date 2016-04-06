@@ -6,13 +6,13 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.support.v4.app.NotificationCompat;
-import android.widget.Toast;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.IOException;
 
@@ -38,10 +38,23 @@ public class GetBetTimeService extends IntentService {
             Document doc = Jsoup.connect(Constants.PARSE_URL).timeout(PARSE_TIMEOUT).get();
             Element bets = doc.getElementById("bets");
             Element timeElem = bets.child(0).child(0).child(0);
-            if (isTimeToBet(timeElem.text())) {
-                Toast.makeText(getApplicationContext(), "Notify", Toast.LENGTH_SHORT).show();
-                sendNotification("Bet now u lazy ass !!!");
+
+            Element divTables = doc.select("div.tables").first();
+            Elements events = divTables.select("tr.event");
+
+            for (Element event : events) {
+                Element eventStatus = event.select("td.event-status").first();
+                if (!"Waiting".equals(eventStatus.text())) {
+                    Element eventTime = event.select("td.event-time > a > span.phpunixtime").first();
+                    System.out.println(eventTime.text());
+                    break;
+                }
             }
+
+//            if (isTimeToBet(timeElem.text())) {
+//                Toast.makeText(getApplicationContext(), "Notify", Toast.LENGTH_SHORT).show();
+//                sendNotification("Bet now u lazy ass !!!");
+//            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -53,8 +66,9 @@ public class GetBetTimeService extends IntentService {
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_stat_logo)
-                .setContentTitle("Bet Now !!!")
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_logo))
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
+                .setContentTitle("It's Betting Time")
                 .setContentText(msg)
                 .setDefaults(Notification.DEFAULT_SOUND)
                 .setAutoCancel(true);
