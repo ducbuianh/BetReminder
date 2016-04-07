@@ -17,13 +17,9 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         Bundle bundle = intent.getExtras();
         String action = bundle.getString(ACTION_ALARM);
         if (action.equals(ACTION_ALARM)) {
-            Toast.makeText(context, "Entered", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(context, "Entered", Toast.LENGTH_SHORT).show();
             Intent inService = new Intent(context, GetBetTimeService.class);
             context.startService(inService);
-        }
-        else
-        {
-            Toast.makeText(context, "Else loop", Toast.LENGTH_SHORT).show();
         }
     }
 }

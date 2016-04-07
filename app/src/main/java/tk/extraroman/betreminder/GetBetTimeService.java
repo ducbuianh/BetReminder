@@ -9,12 +9,18 @@ import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
+
 import org.jsoup.Jsoup;
+import org.jsoup.helper.StringUtil;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class GetBetTimeService extends IntentService {
     //private String time;
@@ -36,25 +42,34 @@ public class GetBetTimeService extends IntentService {
     protected void onHandleIntent(Intent workIntent) {
         try {
             Document doc = Jsoup.connect(Constants.PARSE_URL).timeout(PARSE_TIMEOUT).get();
-            Element bets = doc.getElementById("bets");
-            Element timeElem = bets.child(0).child(0).child(0);
+            //Element bets = doc.getElementById("bets");
+            //Element timeElem = bets.child(0).child(0).child(0);
 
             Element divTables = doc.select("div.tables").first();
             Elements events = divTables.select("tr.event");
 
+            long matchTimeStamp = 0;
+            String matchName = "";
+            String matchTime = "";
+
             for (Element event : events) {
                 Element eventStatus = event.select("td.event-status").first();
-                if (!"Waiting".equals(eventStatus.text())) {
-                    Element eventTime = event.select("td.event-time > a > span.phpunixtime").first();
-                    System.out.println(eventTime.text());
+                if (StringUtil.isBlank(eventStatus.text())) {
+                    Element eventTimeStamp = event.select("td.event-time > a > span.phpunixtime").first();
+                    matchTimeStamp = Long.parseLong(eventTimeStamp.text());
+                    Element eventTime = event.select("td.event-time > a ").first();
+                    SimpleDateFormat format = new SimpleDateFormat("HH:mm");
+                    matchTime = format.format(new Date(matchTimeStamp));
+                    matchName = eventTime.attr("title");
                     break;
                 }
             }
 
-//            if (isTimeToBet(timeElem.text())) {
-//                Toast.makeText(getApplicationContext(), "Notify", Toast.LENGTH_SHORT).show();
-//                sendNotification("Bet now u lazy ass !!!");
-//            }
+            if (isTimeToBet(matchTimeStamp)) {
+                sendNotification("[" + matchName + "] will start at " + matchTime);
+            }
+        } catch (UnknownHostException ex) {
+            Log.e("debug", "Unknown host exception occurred");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -65,26 +80,33 @@ public class GetBetTimeService extends IntentService {
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.ic_stat_logo)
-                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_logo))
+                .setSmallIcon(R.drawable.ic_launcher)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
-                .setContentTitle("It's Betting Time")
+                .setContentTitle("Bet Reminder")
                 .setContentText(msg)
                 .setDefaults(Notification.DEFAULT_SOUND)
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setAutoCancel(true);
 
-        mBuilder.setContentIntent(contentIntent).setContentTitle("").setContentText("");
+        mBuilder.setTicker("We have a new bet coming");
         mBuilder.setVibrate(new long[]{1000, 1000, 1000, 1000, 1000});
         mBuilder.setLights(Color.RED, 3000, 3000);
 
         mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 
-    private boolean isTimeToBet(String time) {
-        String[] timeElem = time.split(" ");
-        System.out.println("asdfasdfasd: " + timeElem[0] + " " + timeElem[1].charAt(0));
+    private boolean isTimeToBet(long nextMatchTime) {
+        return (System.currentTimeMillis() + calculateThresholdTime() >= nextMatchTime);
+    }
+
+    private long calculateThresholdTime() {
         int thresholdValue = Integer.parseInt(PreferenceUtil.getPreference(getApplicationContext(), Constants.THRESHOLD_VALUE_KEY));
         char thresholdUnit = PreferenceUtil.getPreference(getApplicationContext(), Constants.THRESHOLD_UNIT_KEY).charAt(0);
-        return (Integer.parseInt(timeElem[0]) <= thresholdValue && thresholdUnit == timeElem[1].charAt(0));
+
+        if (thresholdUnit == 'h') {
+            return thresholdValue*3600*1000;
+        } else {
+            return thresholdValue*60*1000;
+        }
     }
 }
