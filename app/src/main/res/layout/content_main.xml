@@ -15,9 +15,13 @@
 
     <TextView
         android:id="@+id/abc"
-        android:text="Set notification threshold:"
+        android:text="Notification threshold:"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="120dp" />
 
     <Spinner
         android:layout_width="wrap_content"
@@ -90,6 +94,37 @@
         android:layout_toRightOf="@+id/buttonStart"
         android:layout_toEndOf="@+id/buttonStart"
         android:background="#4fabdc" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Next Match:"
+        android:id="@+id/textView2"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="[ -- vs -- ]"
+        android:id="@+id/match_name"
+        android:layout_below="@+id/textView2"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:singleLine="false" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="at --:--"
+        android:id="@+id/match_time"
+        android:layout_below="@+id/match_name"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
 
 </RelativeLayout>

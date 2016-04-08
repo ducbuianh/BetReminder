@@ -5,15 +5,18 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.os.Messenger;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
     private Spinner thresholdValueSpinner;
@@ -21,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private Spinner checkIntervalSpinner;
     private Button btnStart;
     private Button btnStop;
+    private Handler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +35,12 @@ public class MainActivity extends AppCompatActivity {
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        // Init settings
+        PreferenceUtil.savePreference(getApplicationContext(), Constants.THRESHOLD_UNIT_KEY, "minute(s)");
+        PreferenceUtil.savePreference(getApplicationContext(), Constants.THRESHOLD_VALUE_KEY, "15");
+        PreferenceUtil.savePreference(getApplicationContext(), Constants.CHECK_INTERVAL_KEY, "5 minute");
+
+        setupHandler();
         drawSpinner();
         drawButton();
     }
@@ -57,6 +67,19 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void setupHandler() {
+        handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                Bundle reply = msg.getData();
+                TextView matchName = (TextView) findViewById(R.id.match_name);
+                matchName.setText("[" + reply.getString(GetBetTimeService.MATCH_NAME_KEY) + "]");
+                TextView matchTime = (TextView) findViewById(R.id.match_time);
+                matchTime.setText("at " + reply.getString(GetBetTimeService.MATCH_TIME_KEY));
+            }
+        };
+    }
+
     private void drawSpinner() {
         thresholdValueSpinner = (Spinner) findViewById(R.id.threshold_value_spinner);
         ArrayAdapter<CharSequence> thresholdValueAdapter = ArrayAdapter.createFromResource(this,
@@ -64,19 +87,20 @@ public class MainActivity extends AppCompatActivity {
         thresholdValueAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         thresholdValueSpinner.setAdapter(thresholdValueAdapter);
         thresholdValueSpinner.setSelection(0);
-        thresholdValueSpinner.setPrompt("Choose a threshold value");
+        thresholdValueSpinner.setEnabled(false);
+        //thresholdValueSpinner.setPrompt("Choose a threshold value");
 
-        thresholdValueSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                PreferenceUtil.savePreference(getApplicationContext(), Constants.THRESHOLD_VALUE_KEY, parent.getSelectedItem().toString());
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
+//        thresholdValueSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//            @Override
+//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+//                PreferenceUtil.savePreference(getApplicationContext(), Constants.THRESHOLD_VALUE_KEY, parent.getSelectedItem().toString());
+//            }
+//
+//            @Override
+//            public void onNothingSelected(AdapterView<?> parent) {
+//
+//            }
+//        });
 
         thresholdUnitSpinner = (Spinner) findViewById(R.id.threshold_unit_spinner);
         ArrayAdapter<CharSequence> thresholdUnitAdapter = ArrayAdapter.createFromResource(this,
@@ -84,29 +108,30 @@ public class MainActivity extends AppCompatActivity {
         thresholdUnitAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         thresholdUnitSpinner.setAdapter(thresholdUnitAdapter);
         thresholdUnitSpinner.setSelection(0);
-        thresholdUnitSpinner.setPrompt("Choose a threshold unit");
+        thresholdUnitSpinner.setEnabled(false);
+        //thresholdUnitSpinner.setPrompt("Choose a threshold unit");
 
-        thresholdUnitSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                PreferenceUtil.savePreference(parent.getContext(), Constants.THRESHOLD_UNIT_KEY, parent.getSelectedItem().toString());
-
-                int valueArrayId = 0;
-                if (parent.getSelectedItem().toString().charAt(0) == 'h') {
-                    valueArrayId = R.array.bet_threshold_hour_value_array;
-                } else {
-                    valueArrayId = R.array.bet_threshold_minute_value_array;
-                }
-                ArrayAdapter<CharSequence> newAdapter = ArrayAdapter.createFromResource(parent.getContext(),
-                        valueArrayId, android.R.layout.simple_spinner_item);
-                thresholdValueSpinner.setAdapter(newAdapter);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
+//        thresholdUnitSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//            @Override
+//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+//                PreferenceUtil.savePreference(parent.getContext(), Constants.THRESHOLD_UNIT_KEY, parent.getSelectedItem().toString());
+//
+//                int valueArrayId = 0;
+//                if (parent.getSelectedItem().toString().charAt(0) == 'h') {
+//                    valueArrayId = R.array.bet_threshold_hour_value_array;
+//                } else {
+//                    valueArrayId = R.array.bet_threshold_minute_value_array;
+//                }
+//                ArrayAdapter<CharSequence> newAdapter = ArrayAdapter.createFromResource(parent.getContext(),
+//                        valueArrayId, android.R.layout.simple_spinner_item);
+//                thresholdValueSpinner.setAdapter(newAdapter);
+//            }
+//
+//            @Override
+//            public void onNothingSelected(AdapterView<?> parent) {
+//
+//            }
+//        });
 
         checkIntervalSpinner = (Spinner) findViewById(R.id.bet_check_interval_spinner);
         ArrayAdapter<CharSequence> checkIntervalAdapter = ArrayAdapter.createFromResource(this,
@@ -114,19 +139,20 @@ public class MainActivity extends AppCompatActivity {
         checkIntervalAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         checkIntervalSpinner.setAdapter(checkIntervalAdapter);
         checkIntervalSpinner.setSelection(0);
-        checkIntervalSpinner.setPrompt("Check for next bet every");
+        checkIntervalSpinner.setEnabled(false);
+        //checkIntervalSpinner.setPrompt("Check for next bet every");
 
-        checkIntervalSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                PreferenceUtil.savePreference(parent.getContext(), Constants.CHECK_INTERVAL_KEY, parent.getSelectedItem().toString());
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
+//        checkIntervalSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//            @Override
+//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+//                PreferenceUtil.savePreference(parent.getContext(), Constants.CHECK_INTERVAL_KEY, parent.getSelectedItem().toString());
+//            }
+//
+//            @Override
+//            public void onNothingSelected(AdapterView<?> parent) {
+//
+//            }
+//        });
     }
 
     private void drawButton() {
@@ -160,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
 
                     Intent intent = new Intent(v.getContext(), BroadcastReceiver.class);
                     intent.putExtra(BroadcastReceiver.ACTION_ALARM, BroadcastReceiver.ACTION_ALARM);
+                    intent.putExtra(BroadcastReceiver.MESSENGER, new Messenger(handler));
 
                     PendingIntent pIntent = PendingIntent.getBroadcast(v.getContext(),
                             1234567, intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -180,8 +207,8 @@ public class MainActivity extends AppCompatActivity {
     private void enableControls(boolean isStopButtonClicked) {
         btnStart.setEnabled(isStopButtonClicked);
         btnStop.setEnabled(!isStopButtonClicked);
-        thresholdUnitSpinner.setEnabled(isStopButtonClicked);
-        thresholdValueSpinner.setEnabled(isStopButtonClicked);
-        checkIntervalSpinner.setEnabled(isStopButtonClicked);
+        //thresholdUnitSpinner.setEnabled(isStopButtonClicked);
+        //thresholdValueSpinner.setEnabled(isStopButtonClicked);
+        //checkIntervalSpinner.setEnabled(isStopButtonClicked);
     }
 }

@@ -6,8 +6,11 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.os.Bundle;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -23,10 +26,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class GetBetTimeService extends IntentService {
-    //private String time;
     private static final int PARSE_TIMEOUT = 30*1000;
-    public static final int NOTIFICATION_ID = 1;
+    private static final int NOTIFICATION_ID = 1;
     private NotificationManager mNotificationManager;
+
+    public static final String MATCH_NAME_KEY = "match-name";
+    public static final String MATCH_TIME_KEY = "match-time";
 
     public GetBetTimeService() {
         super("GetBetTimeService");
@@ -61,6 +66,22 @@ public class GetBetTimeService extends IntentService {
                     SimpleDateFormat format = new SimpleDateFormat("HH:mm");
                     matchTime = format.format(new Date(matchTimeStamp));
                     matchName = eventTime.attr("title");
+
+                    Bundle bundle = workIntent.getExtras();
+                    if (bundle != null) {
+                        Messenger messenger = (Messenger) bundle.get(BroadcastReceiver.MESSENGER);
+                        Message msg = Message.obtain();
+                        Bundle reply = new Bundle();
+                        reply.putString(MATCH_TIME_KEY, matchTime);
+                        reply.putString(MATCH_NAME_KEY, matchName);
+                        msg.setData(reply);
+
+                        try {
+                            messenger.send(msg);
+                        } catch (RemoteException e) {
+                            Log.e("debug","Can not send msg");
+                        }
+                    }
                     break;
                 }
             }
@@ -77,8 +98,6 @@ public class GetBetTimeService extends IntentService {
 
     private void sendNotification(String msg)
     {
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
-
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
@@ -96,7 +115,8 @@ public class GetBetTimeService extends IntentService {
     }
 
     private boolean isTimeToBet(long nextMatchTime) {
-        return (System.currentTimeMillis() + calculateThresholdTime() >= nextMatchTime);
+        return (System.currentTimeMillis() + calculateThresholdTime() >= nextMatchTime)
+                && (System.currentTimeMillis() + 5*60*1000 <= nextMatchTime);
     }
 
     private long calculateThresholdTime() {
